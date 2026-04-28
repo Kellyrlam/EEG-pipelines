@@ -1,0 +1,58 @@
+EEG Pipeline (MNE) for EEG preprocessing. 
+NOTE: EEG Systems have different formatting: choose the correct loader depending on your dataset format
+NeuroScan (.cnt): raw = mne.io.read_raw_cnt("file.cnt", preload=True)
+BrainVision (.vhdr)  mne.io.read_raw_brainvision("file.vhdr", preload=True)
+
+Steps: 
+1. Load raw EEG data (RE NOTE)
+2. Set reference 
+3. Filter (bandpass + notch - depending on paradigm/frequency you are researching)
+4. Independent Component Analysis ICA
+5. Save cleaned dataset for later segmentation/analysis 
+---------------------------------------------------------
+
+
+raw = mne.io.read_raw_cnt("file.cnt", preload=True)
+
+print(raw.info)
+
+----------------------------------------------------------
+
+2. Re-reference EEG data
+
+# Two options
+ **average reference (this averages across all EEG channels)**
+
+raw.set_eeg_reference('average')
+
+**specific electrodes (mastoids, CZ etc)**
+
+raw.set_eeg_reference(ref_channels=['CZ']) 
+-----------------------------------------------------------------------------------
+
+
+---------------------------------------
+
+3. Filtering 
+- High-pass 0.5 Hz - 1 Hz (remove slow drift)
+- Low-pass 40Hz - 100 Hz  (depends on research question)
+- Notch 50 Hz 
+
+------------------------------------------
+raw.filter(l_freq=1.0, h_freq=40.0)
+raw.notch_filter(freqs=50)
+
+------------------------------------------------------------
+
+4. ICA - the purpose of ICA is to remove artefacts such as eye blinks, muscle noise etc 
+
+# ICA decomp is performed 'automatically' artefact component identification is assisted using automated EOG.ECG BUT FINAL COMPONENT SELCTEION SHOULD BE MANUALLY REVIWED. 
+
+ica = mne.preprocessing.ICA(n_components=0.95, random_state=97, max_iter="auto")
+ica.fit(raw)
+
+
+
+
+
+
